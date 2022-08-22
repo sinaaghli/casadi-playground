@@ -1,6 +1,7 @@
 #include "foo/foo.h"
 #include <casadi/casadi.hpp>
 #include <iostream>
+#include <string>
 
 using namespace casadi;
 
@@ -85,7 +86,62 @@ void composition(){
   // DMDict res = solver(DMDict{{"x0",0.2},{"lbg",0},{"ubg",0}});
 }
 
+class MyCallback : public Callback {
+  double d;
+public:
+  MyCallback(const std::string& name, double d, const Dict& opts=Dict()) : d(d) {
+    construct(name,opts);
+  }
+  ~MyCallback() override {}
+
+  casadi_int get_n_in() override {return 2;}
+  casadi_int get_n_out() override {return 1;}
+
+  void init() override {
+    std::cout << "initializing object" << std::endl;
+  }
+
+  std::vector<DM> eval(const std::vector<DM>& arg) const override {
+    return {mtimes(arg.at(0),arg.at(1))};
+  }
+};
+
 int main(int argc, char *argv[]) {
-  composition();
+  // composition();
+
+  // auto A = MX::sym("a",2,3);
+  // auto B = MX::sym("b",3);
+  // auto C = mtimes(A,B);
+  // Function f = Function("f",SXIList(A,B),SXIList(mtimes(A,B)));
+
+  SX x = SX::sym("x");
+  SX y = SX::sym("y");
+  SX z = SX::sym("z");
+  y = x+1;
+  z = 2*y;
+  SX w = x+y+z;
+  SX p = simplify(w);
+  std::cout << w << std::endl;
+  std::cout << p << std::endl;
+
+  // auto I = DM(2,3);
+  // auto J = DM(3);
+  // MyCallback f("f",0.1);
+  // MXVector args;
+  // args.push_back(I);
+  // args.push_back(J);
+  // auto res = f(args);
+  // std::cout << res.at(0) << std::endl;
+
+  // std::string code
+  // {"r[0] = x[0];\nwhile (r[0]<s[0]) {\nr[0] *= r[0];\n}"};
+  // auto f = Function::jit("f",code,{"x","s"},{"r"});
+  // std::cout << f << std::endl;
+  
+  // auto dae = DaeBuilder();
+  // auto p1 = dae.add_p("p1");
+  // auto u = dae.add_u("u");
+  // auto x = dae.add_x("x");
+  // dae.
   return 0;
 }
